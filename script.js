@@ -1,8 +1,8 @@
 // Configuration
-const TELEGRAM_BOT_TOKEN = 'YOUR_TELEGRAM_BOT_TOKEN';
-const TELEGRAM_CHAT_ID = 'YOUR_TELEGRAM_CHAT_ID';
-const GROQ_API_KEY_SCRIPT = '';
-const TELEGRAM_BOT_USERNAME = 'YOUR_BOT_USERNAME'; // @BotFather dan olingan bot username
+const TELEGRAM_BOT_TOKEN = '8858840945:AAHjKeZ8O3rL5DG6QpS3O8vHvG4uAg99vZw';
+const TELEGRAM_CHAT_ID = '-1003999561353';
+const GROQ_API_KEY_SCRIPT = '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';
+const TELEGRAM_BOT_USERNAME = '@prowebloginbot'; // @BotFather dan olingan bot username
 
 // Telegram user data
 let telegramUser = null;
@@ -244,50 +244,42 @@ function initTestPage() {
 function onTelegramAuth(user) {
     telegramUser = user;
     
-    // Avtomatik to'ldirish
-    const nameInput = document.getElementById('userName');
-    const phoneInput = document.getElementById('userPhone');
+    const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'User';
+    const phone = user.phone || '';
+    
+    localStorage.setItem('testUser', JSON.stringify({
+        name: name,
+        phone: phone || ('@' + (user.username || 'ID' + user.id)),
+        telegramId: user.id,
+        telegramUsername: user.username || '',
+        telegramPhoto: user.photo_url || ''
+    }));
+    
     const statusEl = document.getElementById('telegram-status');
-    
-    if (nameInput) {
-        nameInput.value = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || '';
-        nameInput.style.background = 'rgba(74,222,128,0.08)';
-        nameInput.style.borderColor = 'rgba(74,222,128,0.3)';
-    }
-    if (phoneInput && user.phone) {
-        phoneInput.value = user.phone;
-    }
-    
     if (statusEl) {
-        const isUz = currentLang === 'uz';
-        statusEl.textContent = isUz ? '✅ Telegram orqali tasdiqlandi!' : '✅ Подтверждено через Telegram!';
+        statusEl.textContent = '✅ ' + name;
         statusEl.style.display = 'block';
     }
     
-    // Telegram login knopkasini yashirish
     const loginBtn = document.getElementById('telegram-login-btn');
     if (loginBtn) loginBtn.style.display = 'none';
+    
+    // Avtomatik testni boshlash
+    setTimeout(() => startTestLogic(), 600);
 }
 
 function startTest() {
-    const nameInput = document.getElementById('userName');
-    const phoneInput = document.getElementById('userPhone');
-    const name = nameInput ? nameInput.value.trim() : '';
-    const phone = phoneInput ? phoneInput.value.trim() : '';
-    
-    if (!name || !phone) {
-        alert(currentLang === 'uz' ? "Iltimos barcha maydonlarni to'ldiring!" : "Пожалуйста, заполните все поля!");
-        return;
-    }
-    
-    // Telegram ma'lumotlarini ham saqlash
-    const userData = { name, phone };
-    if (telegramUser) {
-        userData.telegramId = telegramUser.id;
-        userData.telegramUsername = telegramUser.username || '';
-        userData.telegramPhoto = telegramUser.photo_url || '';
-    }
-    localStorage.setItem('testUser', JSON.stringify(userData));
+    startTestAfterAuth();
+}
+
+function startTestAfterAuth() {
+    currentSubject = localStorage.getItem('currentSubject');
+    startTestLogic();
+}
+
+function startTestLogic() {
+    const userData = JSON.parse(localStorage.getItem('testUser'));
+    if (!userData || !userData.name) return;
     
     // Placement test: har bir blokdan 2-3 tadan savol
     const db = JSON.parse(localStorage.getItem('testDB')) || {};

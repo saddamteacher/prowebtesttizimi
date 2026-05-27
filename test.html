@@ -23,35 +23,20 @@
             <h2 style="margin-bottom: 15px; text-align: center;" id="user-info-title">Ma'lumotlaringizni kiriting</h2>
             
             <!-- Telegram Login -->
-            <div id="telegram-login-section" style="text-align: center; margin-bottom: 20px;">
-                <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;" data-uz="Telegram orqali tez kirish:" data-ru="Быстрый вход через Telegram:">Telegram orqali tez kirish:</p>
+            <div id="telegram-login-section" style="text-align: center;">
+                <p style="color: #888; font-size: 0.9rem; margin-bottom: 18px;" data-uz="Davom etish uchun Telegram orqali kiring:" data-ru="Войдите через Telegram чтобы продолжить:">Davom etish uchun Telegram orqali kiring:</p>
                 <div id="telegram-login-btn" style="display: flex; justify-content: center;">
-                    <!-- Telegram Login Widget -->
                     <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                        data-telegram-login="YOUR_BOT_USERNAME" 
+                        data-telegram-login="prowebloginbot" 
                         data-size="large" 
                         data-userpic="true"
-                        data-radius="12"
+                        data-radius="14"
                         data-onauth="onTelegramAuth(user)"
                         data-request-access="write">
                     </script>
                 </div>
-                <p id="telegram-status" style="margin-top: 8px; font-size: 0.8rem; color: #4ade80; display: none;"></p>
+                <p id="telegram-status" style="margin-top: 12px; font-size: 0.85rem; color: #4ade80; display: none;"></p>
             </div>
-
-            <div style="text-align: center; margin-bottom: 18px; color: #555; font-size: 0.8rem;">
-                <span data-uz="yoki qo'lda to'ldiring" data-ru="или заполните вручную">yoki qo'lda to'ldiring</span>
-            </div>
-
-            <div class="form-group">
-                <label for="userName" id="label-name">Ism va Familiya</label>
-                <input type="text" id="userName" placeholder="Masalan: Alisher Valiyev" required>
-            </div>
-            <div class="form-group">
-                <label for="userPhone" id="label-phone">Telefon raqam</label>
-                <input type="text" id="userPhone" placeholder="+998" required>
-            </div>
-            <button class="btn" id="start-test-btn">Testni boshlash</button>
         </div>
 
         <div class="form-container" id="test-container" style="display: none; position: relative;">
