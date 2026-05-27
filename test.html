@@ -23,17 +23,16 @@
             <!-- Telegram Login -->
             <div id="telegram-login-section" style="text-align: center;">
                 <p style="color: #888; font-size: 0.9rem; margin-bottom: 18px;" data-uz="Davom etish uchun Telegram orqali kiring:" data-ru="Войдите через Telegram чтобы продолжить:">Davom etish uchun Telegram orqali kiring:</p>
-                <div id="telegram-login-btn" style="display: flex; justify-content: center;">
-                    <script async src="https://telegram.org/js/telegram-widget.js?22" 
-                        data-telegram-login="prowebloginbot" 
-                        data-size="large" 
-                        data-userpic="true"
-                        data-radius="14"
-                        data-onauth="onTelegramAuth(user)"
-                        data-request-access="write">
-                    </script>
-                </div>
+                <a href="https://t.me/prowebloginbot?start=auth" 
+                   id="telegram-login-link"
+                   style="display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; background: #2AABEE; color: #fff; border-radius: 14px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(42,171,238,0.3);"
+                   onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 30px rgba(42,171,238,0.4)';"
+                   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(42,171,238,0.3)';">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.717-.635 3.721-.897 5.177-.111.595-.33.794-.54.813-.46.042-.808-.304-1.253-.596-.696-.456-1.089-.74-1.765-1.185-.78-.514-.274-.797.17-1.258.118-.123 2.163-1.983 2.203-2.152.005-.021.01-.1-.037-.142-.047-.042-.117-.028-.167-.016-.071.016-1.2.762-3.388 2.24-.32.22-.61.327-.87.321-.287-.006-.838-.162-1.248-.295-.503-.164-.902-.25-.867-.528.018-.144.218-.292.6-.443 2.37-.993 3.95-1.647 4.74-1.963 2.258-.94 2.727-1.103 3.033-1.108.068-.001.218.015.316.094.097.079.124.185.136.26.012.075.026.247.015.38z"/></svg>
+                    Telegram orqali kirish
+                </a>
                 <p id="telegram-status" style="margin-top: 12px; font-size: 0.85rem; color: #4ade80; display: none;"></p>
+                <p style="margin-top: 14px; color: #555; font-size: 0.75rem;" data-uz="Botga start bosgach, avtomatik testga qaytasiz" data-ru="Нажмите старт в боте и вернётесь к тесту">Botga start bosgach, avtomatik testga qaytasiz</p>
             </div>
         </div>
 
