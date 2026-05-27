@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (document.getElementById('test-container')) {
         initTestPage();
-        initTelegramWebApp();
     }
 });
 
@@ -245,40 +244,6 @@ function initTestPage() {
 }
 
 // ============ TELEGRAM AUTH ============
-function parseTelegramWebAppData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const initData = urlParams.get('tgWebAppData');
-    
-    if (!initData) return null;
-    
-    try {
-        const params = new URLSearchParams(initData);
-        const userStr = params.get('user');
-        if (!userStr) return null;
-        
-        const user = JSON.parse(userStr);
-        return {
-            id: user.id,
-            first_name: user.first_name || '',
-            last_name: user.last_name || '',
-            username: user.username || '',
-            photo_url: user.photo_url || ''
-        };
-    } catch (e) {
-        return null;
-    }
-}
-
-function initTelegramWebApp() {
-    // Agar WebApp orqali ochilgan bo'lsa
-    const webAppUser = parseTelegramWebAppData();
-    if (webAppUser) {
-        onTelegramAuth(webAppUser);
-        return true;
-    }
-    return false;
-}
-
 function onTelegramAuth(user) {
     telegramUser = user;
     
@@ -298,10 +263,19 @@ function onTelegramAuth(user) {
         statusEl.style.display = 'block';
     }
     
-    const loginLink = document.getElementById('telegram-login-link');
-    if (loginLink) loginLink.style.display = 'none';
+    const loginBtn = document.getElementById('telegram-login-btn');
+    if (loginBtn) loginBtn.style.display = 'none';
     
     setTimeout(() => startTestLogic(), 600);
+}
+
+function startTest() {
+    startTestAfterAuth();
+}
+
+function startTestAfterAuth() {
+    currentSubject = localStorage.getItem('currentSubject');
+    startTestLogic();
 }
 
 function startTest() {
