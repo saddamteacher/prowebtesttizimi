@@ -95,7 +95,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (document.getElementById('test-container')) {
         initTestPage();
-        checkTelegramWebApp();
     }
 });
 
@@ -245,26 +244,10 @@ function initTestPage() {
 }
 
 // ============ TELEGRAM AUTH ============
-// URL parametrlaridan Telegram ma'lumotlarini o'qish
-function checkTelegramWebApp() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tgData = urlParams.get('tg_id');
-    
-    if (tgData) {
-        const user = {
-            id: parseInt(tgData),
-            first_name: urlParams.get('tg_name') || 'User',
-            username: urlParams.get('tg_username') || '',
-            photo_url: urlParams.get('tg_photo') || ''
-        };
-        onTelegramAuth(user);
-    }
-}
-
 function onTelegramAuth(user) {
     telegramUser = user;
     
-    const name = user.first_name || user.username || 'User';
+    const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'User';
     
     localStorage.setItem('testUser', JSON.stringify({
         name: name,
@@ -280,15 +263,19 @@ function onTelegramAuth(user) {
         statusEl.style.display = 'block';
     }
     
-    const loginLink = document.getElementById('telegram-login-link');
-    if (loginLink) loginLink.style.display = 'none';
-    
-    // URL parametrlarni tozalash
-    if (window.history && window.history.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    const loginBtn = document.getElementById('telegram-login-btn');
+    if (loginBtn) loginBtn.style.display = 'none';
     
     setTimeout(() => startTestLogic(), 600);
+}
+
+function startTest() {
+    startTestAfterAuth();
+}
+
+function startTestAfterAuth() {
+    currentSubject = localStorage.getItem('currentSubject');
+    startTestLogic();
 }
 
 function startTest() {
