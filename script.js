@@ -235,9 +235,12 @@ function initTestPage() {
         logoEl.style.display = 'block';
     }
 
-    document.getElementById('start-test-btn').addEventListener('click', startTest);
-    document.getElementById('next-q-btn').addEventListener('click', nextQuestion);
-    document.getElementById('finish-early-btn').addEventListener('click', endTest);
+    const startBtn = document.getElementById('start-test-btn');
+    if (startBtn) startBtn.addEventListener('click', startTest);
+    const nextBtn = document.getElementById('next-q-btn');
+    if (nextBtn) nextBtn.addEventListener('click', nextQuestion);
+    const finishBtn = document.getElementById('finish-early-btn');
+    if (finishBtn) finishBtn.addEventListener('click', endTest);
 }
 
 // ============ TELEGRAM AUTH ============
