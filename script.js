@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (document.getElementById('test-container')) {
         initTestPage();
+        checkAutoLogin();
     }
 });
 
@@ -244,10 +245,26 @@ function initTestPage() {
 }
 
 // ============ TELEGRAM AUTH ============
+function checkAutoLogin() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tgId = urlParams.get('tg_id');
+    
+    if (tgId) {
+        onTelegramAuth({
+            id: parseInt(tgId),
+            first_name: urlParams.get('tg_name') || 'User',
+            username: urlParams.get('tg_username') || '',
+            photo_url: ''
+        });
+        return true;
+    }
+    return false;
+}
+
 function onTelegramAuth(user) {
     telegramUser = user;
     
-    const name = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username || 'User';
+    const name = user.first_name || 'User';
     
     localStorage.setItem('testUser', JSON.stringify({
         name: name,
@@ -263,8 +280,8 @@ function onTelegramAuth(user) {
         statusEl.style.display = 'block';
     }
     
-    const loginBtn = document.getElementById('telegram-login-btn');
-    if (loginBtn) loginBtn.style.display = 'none';
+    const loginLink = document.getElementById('telegram-login-link');
+    if (loginLink) loginLink.style.display = 'none';
     
     setTimeout(() => startTestLogic(), 600);
 }
