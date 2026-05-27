@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test | ProWeb</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="" alt="Subject" id="selected-subject-logo" style="height: 40px; display: none;">
+        </div>
+        <div class="header-links">
+            <a href="index.html" id="back-link">Orqaga</a>
+        </div>
+    </header>
+
+    <main>
+        <h1 class="page-title" id="subject-title">Test</h1>
+        
+        <div class="form-container" id="user-info-form">
+            <h2 style="margin-bottom: 15px; text-align: center;" id="user-info-title">Ma'lumotlaringizni kiriting</h2>
+            
+            <!-- Telegram Login -->
+            <div id="telegram-login-section" style="text-align: center; margin-bottom: 20px;">
+                <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;" data-uz="Telegram orqali tez kirish:" data-ru="Быстрый вход через Telegram:">Telegram orqali tez kirish:</p>
+                <div id="telegram-login-btn" style="display: flex; justify-content: center;">
+                    <!-- Telegram Login Widget -->
+                    <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                        data-telegram-login="YOUR_BOT_USERNAME" 
+                        data-size="large" 
+                        data-userpic="true"
+                        data-radius="12"
+                        data-onauth="onTelegramAuth(user)"
+                        data-request-access="write">
+                    </script>
+                </div>
+                <p id="telegram-status" style="margin-top: 8px; font-size: 0.8rem; color: #4ade80; display: none;"></p>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 18px; color: #555; font-size: 0.8rem;">
+                <span data-uz="yoki qo'lda to'ldiring" data-ru="или заполните вручную">yoki qo'lda to'ldiring</span>
+            </div>
+
+            <div class="form-group">
+                <label for="userName" id="label-name">Ism va Familiya</label>
+                <input type="text" id="userName" placeholder="Masalan: Alisher Valiyev" required>
+            </div>
+            <div class="form-group">
+                <label for="userPhone" id="label-phone">Telefon raqam</label>
+                <input type="text" id="userPhone" placeholder="+998" required>
+            </div>
+            <button class="btn" id="start-test-btn">Testni boshlash</button>
+        </div>
+
+        <div class="form-container" id="test-container" style="display: none; position: relative;">
+            <div id="timer-display" style="position: absolute; top: 20px; right: 20px; font-size: 1.5rem; font-weight: bold; color: #ff3333;">15</div>
+            
+            <form id="quiz-form">
+                <div id="single-question-wrapper" style="margin-top: 40px;">
+                    <!-- Question will be injected here -->
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn" id="next-q-btn" style="flex: 1;">Keyingi (O'tkazish)</button>
+                    <button type="button" class="btn" id="finish-early-btn" style="flex: 1; background-color: #ff3333; color: white;">Testni yakunlash</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-container result-container" id="result-container" style="display: none;">
+            <h2 id="result-title">✅ Test Yakunlandi</h2>
+            <p id="result-message" style="margin-top: 20px; margin-bottom: 30px; font-size: 1.2rem;">Qatnashganingiz uchun rahmat!<br>Siz bilan tez orada bog'lanamiz.</p>
+            <a href="index.html" class="btn" id="home-btn">Bosh sahifaga qaytish</a>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
