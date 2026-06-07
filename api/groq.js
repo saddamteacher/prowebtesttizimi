@@ -8,13 +8,7 @@ export default async function handler(req, res) {
     if (!GROQ_API_KEY) return res.status(503).json({ error: 'GROQ_API_KEY sozlanmagan' });
 
     const langName = lang === 'uz' ? "O'zbek" : 'Rus';
-    const prompt = `Sen test savollarini yaratuvchi mutaxassissan. Quyidagi mavzu bo'yicha ${count} ta test savoli yarat. Har bir savol 4 ta variantdan iborat bo'lsin, faqat bittasi to'g'ri.
-
-Mavzu: ${topic}
-Til: ${langName}
-
-Faqat JSON array qaytar:
-[{"text":"savol","options":["A","B","C","D"],"correct":0}]`;
+    const prompt = `${count} ta test savoli yarat. Mavzu: ${topic}. Til: ${langName}. JSON array faqat:\n[{"text":"savol","options":["A","B","C","D"],"correct":0}]`;
 
     try {
         const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -24,12 +18,13 @@ Faqat JSON array qaytar:
                 'Authorization': `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'gemma2-9b-it',
+                model: 'llama-3.1-8b-instant',
                 messages: [
+                    { role: 'system', content: 'Faqat JSON array qaytar.' },
                     { role: 'user', content: prompt }
                 ],
                 temperature: 0.7,
-                max_tokens: 1500
+                max_tokens: 800
             })
         });
 
