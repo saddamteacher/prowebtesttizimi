@@ -21,15 +21,22 @@
         
         <div class="form-container" id="user-info-form">
             <div id="telegram-login-section" style="text-align: center;">
-                <p style="color: #888; font-size: 0.9rem; margin-bottom: 18px;" data-uz="Davom etish uchun Telegram orqali kiring:" data-ru="Войдите через Telegram чтобы продолжить:">Davom etish uchun Telegram orqali kiring:</p>
-                <a href="https://t.me/prowebloginbot" 
-                   id="telegram-login-link"
-                   target="_blank"
-                   style="display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px; background: #2AABEE; color: #fff; border-radius: 14px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(42,171,238,0.3);">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.717-.635 3.721-.897 5.177-.111.595-.33.794-.54.813-.46.042-.808-.304-1.253-.596-.696-.456-1.089-.74-1.765-1.185-.78-.514-.274-.797.17-1.258.118-.123 2.163-1.983 2.203-2.152.005-.021.01-.1-.037-.142-.047-.042-.117-.028-.167-.016-.071.016-1.2.762-3.388 2.24-.32.22-.61.327-.87.321-.287-.006-.838-.162-1.248-.295-.503-.164-.902-.25-.867-.528.018-.144.218-.292.6-.443 2.37-.993 3.95-1.647 4.74-1.963 2.258-.94 2.727-1.103 3.033-1.108.068-.001.218.015.316.094.097.079.124.185.136.26.012.075.026.247.015.38z"/></svg>
-                    <span data-uz="Telegram orqali kirish" data-ru="Войти через Telegram">Telegram orqali kirish</span>
-                </a>
-                <p id="telegram-status" style="margin-top: 12px; font-size: 0.85rem; color: #4ade80; display: none;"></p>
+                <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;margin-bottom:28px;" id="login-hint">
+                    Davom etish uchun Telegram orqali kiring
+                </p>
+
+                <!-- Telegram Login Widget (deployed domenida ishlaydi) -->
+                <div id="telegram-widget-wrap" style="display:flex;justify-content:center;min-height:44px;">
+                    <script async src="https://telegram.org/js/telegram-widget.js?22"
+                        data-telegram-login="prowebloginbot"
+                        data-size="large"
+                        data-radius="14"
+                        data-onauth="onTelegramAuth(user)"
+                        data-request-access="write">
+                    </script>
+                </div>
+
+                <p id="telegram-status" style="margin-top:16px;font-size:0.9rem;color:#4ade80;display:none;font-weight:700;"></p>
             </div>
         </div>
 
@@ -49,12 +56,31 @@
         </div>
 
         <div class="form-container result-container" id="result-container" style="display: none;">
-            <h2 id="result-title">✅ Test Yakunlandi</h2>
-            <p id="result-message" style="margin-top: 20px; margin-bottom: 30px; font-size: 1.2rem;">Qatnashganingiz uchun rahmat!<br>Siz bilan tez orada bog'lanamiz.</p>
+            <span class="result-icon">✅</span>
+            <h2 id="result-title" style="font-size:1.5rem; font-weight:800; letter-spacing:-0.4px;">Test Yakunlandi</h2>
+            <div class="score-display" id="score-display"></div>
+
+            <div class="block-results" id="block-results"></div>
+
+            <div class="ai-recommendation" id="ai-recommendation" style="display:none;">
+                <div class="ai-recommendation-title">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                    AI Tavsiyasi
+                </div>
+                <div class="ai-recommendation-text" id="ai-recommendation-text">
+                    <div class="ai-loading-small">
+                        <div class="spinner-xs"></div>
+                        <span>Tahlil qilinmoqda...</span>
+                    </div>
+                </div>
+            </div>
+
+            <p id="result-message" style="margin: 0 0 28px; font-size:0.9rem; color: rgba(255,255,255,0.4); line-height:1.6;"></p>
             <a href="index.html" class="btn" id="home-btn">Bosh sahifaga qaytish</a>
         </div>
     </main>
 
+    <script src="questions_seed.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

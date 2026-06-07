@@ -31,6 +31,7 @@ const subjects = [
 const translations = {
     uz: {
         pageTitle: "Yo'nalishni tanlang",
+        pageSubtitle: "O'zingizga mos yo'nalishni tanlang va testni boshlang",
         backLink: "Orqaga",
         testTitle: "Test",
         userInfoTitle: "Ma'lumotlaringizni kiriting",
@@ -46,6 +47,7 @@ const translations = {
     },
     ru: {
         pageTitle: "Выберите направление",
+        pageSubtitle: "Выберите подходящее направление и начните тест",
         backLink: "Назад",
         testTitle: "Тест",
         userInfoTitle: "Введите ваши данные",
@@ -173,6 +175,7 @@ function applyTranslations() {
     
     const elements = {
         'page-title': t.pageTitle,
+        'page-subtitle': t.pageSubtitle,
         'back-link': t.backLink,
         'user-info-title': t.userInfoTitle,
         'label-name': t.labelName,
@@ -319,7 +322,11 @@ function startTestLogic() {
     
     // Placement test: har bir blokdan 2-3 tadan savol
     const db = JSON.parse(localStorage.getItem('testDB')) || {};
-    const langDB = db[currentLang] || {};
+    // uz ga fallback: agar ru da savol bo'lmasa uz dan olish
+    let langDB = db[currentLang] || {};
+    if (!langDB[currentSubject] && db['uz']?.[currentSubject]) {
+        langDB = db['uz'];
+    }
     const subjectData = langDB[currentSubject];
     
     testQuestions = [];
@@ -362,26 +369,46 @@ function startTestLogic() {
 function renderSingleQuestion() {
     const wrapper = document.getElementById('single-question-wrapper');
     const q = testQuestions[currentQuestionIndex];
-    
-    let optionsHTML = '';
-    q.options.forEach((opt, oIndex) => {
-        optionsHTML += `
-            <div class="option-item">
-                <label>
-                    <input type="radio" name="current-q" value="${oIndex}">
-                    ${opt}
-                </label>
-            </div>
-        `;
-    });
-    
+
+    // Parse code blocks marked with ```
+    function parseQuestionText(text) {
+        const parts = text.split('```');
+        if (parts.length < 3) {
+            return `<div class="question-main-text">${text}</div>`;
+        }
+        let html = `<div class="question-main-text">${parts[0]}</div>`;
+        for (let i = 1; i < parts.length; i++) {
+            if (i % 2 === 1) {
+                // code block — strip leading lang hint (python, js, etc)
+                const code = parts[i].replace(/^(python|js|javascript|html|css|sql|bash)\n/, '');
+                html += `<pre class="code-block">${escapeHtml(code.trim())}</pre>`;
+            } else if (parts[i]) {
+                html += `<div class="question-main-text" style="margin-top:8px;">${parts[i]}</div>`;
+            }
+        }
+        return html;
+    }
+
+    function escapeHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    const letters = ['A','B','C','D'];
+    const optionsHTML = q.options.map((opt, i) => `
+        <div class="option-item">
+            <label>
+                <input type="radio" name="current-q" value="${i}">
+                <span style="font-size:0.78rem;font-weight:700;color:rgba(255,255,255,0.4);margin-right:4px;">${letters[i]}.</span>
+                ${opt}
+            </label>
+        </div>`).join('');
+
     wrapper.innerHTML = `
-        <div class="question-text">${currentQuestionIndex + 1}/${testQuestions.length}. ${q.text}</div>
-        <div class="options-list">
-            ${optionsHTML}
-        </div>
+        <div class="question-label">${currentQuestionIndex + 1} / ${testQuestions.length}</div>
+        ${parseQuestionText(q.text)}
+        <div class="options-list" style="margin-top:18px;">${optionsHTML}</div>
     `;
-    
+
     startTimer();
 }
 
@@ -451,13 +478,123 @@ function endTest() {
     const resultMsg = document.getElementById('result-message');
     const isUz = currentLang === 'uz';
     
-    resultTitle.textContent = isUz ? '✅ Test Yakunlandi' : '✅ Тест Завершён';
-    resultMsg.innerHTML = `
-        <p style="font-size:1.2rem; margin:20px 0;">${isUz ? 'Qatnashganingiz uchun rahmat!' : 'Спасибо за участие!'}</p>
-        <p style="color:#888;">${isUz ? 'Siz bilan tez orada bog\'lanamiz.' : 'Мы скоро с вами свяжемся.'}</p>
-    `;
+    resultTitle.textContent = isUz ? 'Test Yakunlandi' : 'Тест Завершён';
+
+    // Score display
+    const scoreDisplay = document.getElementById('score-display');
+    if (scoreDisplay) scoreDisplay.textContent = `${percentage}%`;
+
+    // Block progress bars
+    const blockResultsEl = document.getElementById('block-results');
+    if (blockResultsEl && Object.keys(blockScores).length > 0) {
+        const blockKeys = Object.keys(blockScores).sort((a,b) => parseInt(a)-parseInt(b));
+        blockResultsEl.innerHTML = blockKeys.map(bn => {
+            const bs = blockScores[bn];
+            const pct = bs.total > 0 ? Math.round(bs.correct / bs.total * 100) : 0;
+            const cls = pct >= 60 ? 'bar-pass' : pct >= 40 ? 'bar-mid' : 'bar-fail';
+            return `<div class="block-result-row">
+                <span class="block-result-label">${isUz ? 'Blok' : 'Блок'} ${bn}</span>
+                <div class="block-result-bar-wrap">
+                    <div class="block-result-bar ${cls}" style="width:${pct}%"></div>
+                </div>
+                <span class="block-result-pct">${bs.correct}/${bs.total}</span>
+            </div>`;
+        }).join('');
+    }
+
+    // Show AI recommendation box and fetch analysis
+    const aiBox = document.getElementById('ai-recommendation');
+    if (aiBox) {
+      aiBox.style.display = 'block';
+      fetchAIAnalysis(isUz, subjectName, percentage);
+    }
+
+    resultMsg.innerHTML = isUz
+        ? 'Qatnashganingiz uchun rahmat!<br>Siz bilan tez orada bog\'lanamiz.'
+        : 'Спасибо за участие!<br>Мы скоро с вами свяжемся.';
     
     sendToTelegram(userScore, testQuestions.length, percentage);
+}
+
+async function verifyCode() {
+    const input = document.getElementById('code-input');
+    const btn   = document.getElementById('verify-btn');
+    const errEl = document.getElementById('code-error');
+    const code  = (input?.value || '').replace(/\s/g, '');
+
+    if (code.length < 4) {
+        if (errEl) { errEl.textContent = 'Kodni to\'liq kiriting'; errEl.style.display = 'block'; }
+        return;
+    }
+
+    btn.disabled   = true;
+    btn.textContent = '...';
+    if (errEl) errEl.style.display = 'none';
+
+    try {
+        const res = await fetch('/api/verify-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+
+        if (!res.ok || !data.ok) {
+            if (errEl) {
+                errEl.textContent = data.error || 'Kod noto\'g\'ri yoki muddati o\'tgan';
+                errEl.style.display = 'block';
+            }
+            btn.disabled   = false;
+            btn.textContent = '✓';
+            input.value    = '';
+            input.focus();
+            return;
+        }
+
+        onTelegramAuth(data.user);
+    } catch (e) {
+        if (errEl) { errEl.textContent = 'Ulanish xatosi'; errEl.style.display = 'block'; }
+        btn.disabled   = false;
+        btn.textContent = '✓';
+    }
+}
+
+// Enter tugmasi bilan ham yuborish
+document.addEventListener('DOMContentLoaded', () => {
+    const ci = document.getElementById('code-input');
+    if (ci) ci.addEventListener('keydown', e => { if (e.key === 'Enter') verifyCode(); });
+});
+
+async function fetchAIAnalysis(isUz, subjectName, percentage) {
+    const aiTextEl = document.getElementById('ai-recommendation-text');
+    if (!aiTextEl) return;
+
+    try {
+        const res = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                subject: currentSubject,
+                subjectName: subjectName,
+                lang: currentLang,
+                blocks: blockScores,
+                total: testQuestions.length,
+                score: userScore
+            })
+        });
+        const data = await res.json();
+        const startBlock = data.start_block || 1;
+        const weakTopics = (data.weak_topics || []).join(', ');
+        const msg = data.message || '';
+
+        aiTextEl.innerHTML = `
+            <strong style="color:#fff;">${isUz ? startBlock + '-blokdan boshlash tavsiya etiladi' : 'Рекомендуется начать с ' + startBlock + '-го блока'}</strong>
+            ${weakTopics ? `<br><span style="color:rgba(255,255,255,0.5);font-size:0.82rem;">${isUz ? 'Kuchaytirish kerak:' : 'Следует улучшить:'} ${weakTopics}</span>` : ''}
+            ${msg ? `<br><span style="color:#a5b4fc;font-size:0.88rem;margin-top:6px;display:block;">${msg}</span>` : ''}
+        `;
+    } catch(e) {
+        aiTextEl.innerHTML = `<span style="color:rgba(255,255,255,0.4);font-size:0.85rem;">${isUz ? 'Tahlil yuklanmadi' : 'Анализ недоступен'}</span>`;
+    }
 }
 
 function sendToTelegram(score, total, percentage) {
