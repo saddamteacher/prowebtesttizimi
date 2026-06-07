@@ -20,27 +20,29 @@
         <h1 class="page-title" id="subject-title">Test</h1>
         
         <div class="form-container" id="user-info-form">
-            <div id="telegram-login-section" style="text-align:left;">
-
-                <div class="form-group">
-                    <label id="label-name">Ism va Familiya</label>
-                    <input id="user-name" type="text" placeholder="Sardor Rahimov"
-                           autocomplete="name" style="width:100%;">
-                </div>
-
-                <div class="form-group">
-                    <label id="label-phone">Telefon raqam</label>
-                    <input id="user-phone" type="tel" placeholder="+998 90 123 45 67"
-                           autocomplete="tel" style="width:100%;">
-                </div>
-
-                <button id="start-test-btn" onclick="startTest()" class="btn" style="margin-top:8px;">
-                    Testni boshlash
-                </button>
-
-                <p id="form-error" style="color:#ff6060;font-size:0.82rem;display:none;margin-top:10px;text-align:center;"></p>
-                <p id="telegram-status" style="margin-top:14px;font-size:0.88rem;color:#4ade80;display:none;font-weight:600;text-align:center;"></p>
+            <div style="text-align:center; margin-bottom:28px;">
+                <img id="form-subject-logo" src="" alt="" style="height:52px;object-fit:contain;display:none;margin-bottom:12px;">
+                <h2 id="form-subject-name" style="font-size:1.15rem;font-weight:700;color:rgba(255,255,255,0.85);"></h2>
             </div>
+
+            <div class="form-group">
+                <label id="label-name">Ism va Familiya</label>
+                <input id="user-name" type="text" placeholder="Sardor Rahimov"
+                       autocomplete="name" autocorrect="off" spellcheck="false"
+                       style="width:100%;font-size:1rem;">
+            </div>
+
+            <div class="form-group">
+                <label id="label-phone">Telefon raqam</label>
+                <input id="user-phone" type="tel" placeholder="+998 90 123 45 67"
+                       autocomplete="tel" style="width:100%;font-size:1rem;">
+            </div>
+
+            <button id="start-test-btn" onclick="startTest()" class="btn" style="margin-top:4px;">
+                Testni boshlash →
+            </button>
+
+            <p id="form-error" style="color:#ff6060;font-size:0.82rem;display:none;margin-top:12px;text-align:center;"></p>
         </div>
 
         <div class="form-container" id="test-container" style="display: none; position: relative;">
@@ -58,27 +60,12 @@
             </form>
         </div>
 
-        <div class="form-container result-container" id="result-container" style="display: none;">
-            <span class="result-icon">✅</span>
-            <h2 id="result-title" style="font-size:1.5rem; font-weight:800; letter-spacing:-0.4px;">Test Yakunlandi</h2>
-            <div class="score-display" id="score-display"></div>
-
-            <div class="block-results" id="block-results"></div>
-
-            <div class="ai-recommendation" id="ai-recommendation" style="display:none;">
-                <div class="ai-recommendation-title">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
-                    AI Tavsiyasi
-                </div>
-                <div class="ai-recommendation-text" id="ai-recommendation-text">
-                    <div class="ai-loading-small">
-                        <div class="spinner-xs"></div>
-                        <span>Tahlil qilinmoqda...</span>
-                    </div>
-                </div>
-            </div>
-
-            <p id="result-message" style="margin: 0 0 28px; font-size:0.9rem; color: rgba(255,255,255,0.4); line-height:1.6;"></p>
+        <div class="form-container result-container" id="result-container" style="display:none; text-align:center;">
+            <div style="font-size:3rem; margin-bottom:20px;">✅</div>
+            <h2 id="result-title" style="font-size:1.5rem; font-weight:800; margin-bottom:16px;">Test Yakunlandi</h2>
+            <p id="result-message" style="font-size:1rem; color:rgba(255,255,255,0.5); line-height:1.7; margin-bottom:32px;">
+                Testda qatnashganizga tashakkur,<br>sizga aloqaga chiqamiz.
+            </p>
             <a href="index.html" class="btn" id="home-btn">Bosh sahifaga qaytish</a>
         </div>
     </main>

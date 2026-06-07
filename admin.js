@@ -21,7 +21,7 @@ const subjectsList = [
 const ADMIN_PIN   = '7070';
 const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL   = 'llama-3.3-70b-versatile';
+const GROQ_MODEL   = 'llama-3.1-8b-instant';
 
 // ── Supabase ─────────────────────────────────────────────────────
 const SB_URL = 'https://efctnllxysvxujxfwqbq.supabase.co';

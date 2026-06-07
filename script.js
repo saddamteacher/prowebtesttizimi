@@ -127,7 +127,7 @@ function initLang() {
             if (logoClicks >= 3) {
                 logoClicks = 0;
                 clearTimeout(logoClickTimer);
-                window.location.href = 'admin.html';
+                window.location.href = 'panel.html';
             }
         });
     }
@@ -247,6 +247,12 @@ function initTestPage() {
         logoEl.src = `files/${subjectImg}`;
         logoEl.style.display = 'block';
     }
+
+    // Forma ichidagi logo va nom
+    const formLogo = document.getElementById('form-subject-logo');
+    const formName = document.getElementById('form-subject-name');
+    if (formLogo && subjectImg) { formLogo.src = `files/${subjectImg}`; formLogo.style.display = 'block'; }
+    if (formName && subjectName) formName.textContent = subjectName;
 
     const startBtn = document.getElementById('start-test-btn');
     if (startBtn) startBtn.addEventListener('click', startTest);
@@ -512,40 +518,10 @@ function endTest() {
     const isUz = currentLang === 'uz';
     
     resultTitle.textContent = isUz ? 'Test Yakunlandi' : 'Тест Завершён';
-
-    // Score display
-    const scoreDisplay = document.getElementById('score-display');
-    if (scoreDisplay) scoreDisplay.textContent = `${percentage}%`;
-
-    // Block progress bars
-    const blockResultsEl = document.getElementById('block-results');
-    if (blockResultsEl && Object.keys(blockScores).length > 0) {
-        const blockKeys = Object.keys(blockScores).sort((a,b) => parseInt(a)-parseInt(b));
-        blockResultsEl.innerHTML = blockKeys.map(bn => {
-            const bs = blockScores[bn];
-            const pct = bs.total > 0 ? Math.round(bs.correct / bs.total * 100) : 0;
-            const cls = pct >= 60 ? 'bar-pass' : pct >= 40 ? 'bar-mid' : 'bar-fail';
-            return `<div class="block-result-row">
-                <span class="block-result-label">${isUz ? 'Blok' : 'Блок'} ${bn}</span>
-                <div class="block-result-bar-wrap">
-                    <div class="block-result-bar ${cls}" style="width:${pct}%"></div>
-                </div>
-                <span class="block-result-pct">${bs.correct}/${bs.total}</span>
-            </div>`;
-        }).join('');
-    }
-
-    // Show AI recommendation box and fetch analysis
-    const aiBox = document.getElementById('ai-recommendation');
-    if (aiBox) {
-      aiBox.style.display = 'block';
-      fetchAIAnalysis(isUz, subjectName, percentage);
-    }
-
     resultMsg.innerHTML = isUz
-        ? 'Testda qatnashganizga tashakkur, sizga aloqaga chiqamiz.'
-        : 'Спасибо за участие!<br>Мы скоро с вами свяжемся.';
-    
+        ? 'Testda qatnashganizga tashakkur,<br>sizga aloqaga chiqamiz.'
+        : 'Спасибо за участие,<br>мы скоро с вами свяжемся.';
+
     sendToTelegram(userScore, testQuestions.length, percentage);
 }
 
@@ -631,44 +607,33 @@ async function fetchAIAnalysis(isUz, subjectName, percentage) {
 }
 
 function sendToTelegram(score, total, percentage) {
-    const user = JSON.parse(localStorage.getItem('testUser'));
-    const isRu = currentLang === 'ru';
-    const subjectName = isRu ? localStorage.getItem('currentSubjectNameRu') : localStorage.getItem('currentSubjectNameUz');
-    
-    // Telegram user qo'shimcha info
-    let tgInfo = '';
-    if (user.telegramId) {
-        tgInfo = `\n🆔 TG: ${user.telegramUsername ? '@' + user.telegramUsername : 'ID:' + user.telegramId}`;
-    }
-    
-    // Tavsiya qilingan blokni aniqlash
-    let recommendation = '';
-    if (Object.keys(blockScores).length > 0) {
-        const blockKeys = Object.keys(blockScores).sort((a, b) => parseInt(a) - parseInt(b));
-        let lastPassed = 0;
-        blockKeys.forEach(blockNum => {
-            const bs = blockScores[blockNum];
-            const pct = bs.total > 0 ? Math.round((bs.correct / bs.total) * 100) : 0;
-            if (pct >= 60) lastPassed = parseInt(blockNum);
-        });
-        
-        const maxBlock = parseInt(blockKeys[blockKeys.length - 1]);
-        if (lastPassed >= maxBlock) {
-            recommendation = isRu ? '✅ Прошёл все блоки — продвинутый уровень' : '✅ Barcha bloklardan o\'tdi — yuqori daraja';
-        } else {
-            recommendation = isRu ? `🎯 Рекомендуется начать с ${lastPassed + 1} блока` : `🎯 ${lastPassed + 1}-blokdan boshlash tavsiya etiladi`;
-        }
-    }
-    
-    const title = isRu ? '📝 Новый тест' : '📝 Yangi test';
-    const message = `${title}\n\n👤 ${user.name}\n📱 ${user.phone}${tgInfo}\n📚 ${subjectName}\n🌐 ${currentLang.toUpperCase()}\n📊 ${score}/${total} (${percentage}%)\n${recommendation}`;
+    try {
+        const user = JSON.parse(localStorage.getItem('testUser') || '{}');
+        const isUz = currentLang !== 'ru';
+        const subjectName = localStorage.getItem(isUz ? 'currentSubjectNameUz' : 'currentSubjectNameRu') || '';
 
-    if (TELEGRAM_BOT_TOKEN !== 'YOUR_TELEGRAM_BOT_TOKEN') {
-        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-        fetch(url, {
+        // Blok tavsiyasi
+        let recommendation = '';
+        if (Object.keys(blockScores).length > 0) {
+            const keys = Object.keys(blockScores).sort((a,b) => +a - +b);
+            let lastPassed = 0;
+            keys.forEach(k => {
+                const b = blockScores[k];
+                if (b.total > 0 && b.correct / b.total >= 0.6) lastPassed = parseInt(k);
+            });
+            const max = parseInt(keys[keys.length - 1]);
+            recommendation = lastPassed >= max
+                ? (isUz ? '\n✅ Barcha bloklar — yuqori daraja' : '\n✅ Все блоки — высокий уровень')
+                : (isUz ? `\n🎯 ${lastPassed + 1}-blokdan boshlash tavsiya etiladi` : `\n🎯 Рекомендуется начать с ${lastPassed + 1}-го блока`);
+        }
+
+        const msg = `📝 ${isUz ? 'Yangi test' : 'Новый тест'}\n\n👤 ${user.name || '—'}\n📱 ${user.phone || '—'}\n📚 ${subjectName}\n📊 ${score}/${total} (${percentage}%)${recommendation}`;
+
+        // Server orqali yuborish (CORS muammosi yo'q)
+        fetch('/api/notify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: message })
-        }).catch(err => console.error("Telegram error:", err));
-    }
+            body: JSON.stringify({ message: msg })
+        }).catch(() => {});
+    } catch(e) {}
 }
