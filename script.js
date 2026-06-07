@@ -249,18 +249,39 @@ function initTestPage() {
 
 // ============ TELEGRAM AUTH ============
 function checkAutoLogin() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tgId = urlParams.get('tg_id');
-    
+    const params = new URLSearchParams(window.location.search);
+
+    // Yangi: imzolangan token
+    const token = params.get('t');
+    if (token) {
+        fetch('/api/verify-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                onTelegramAuth(data.user);
+                // URL ni tozalaymiz
+                history.replaceState({}, '', window.location.pathname);
+            }
+        })
+        .catch(() => {});
+        return true;
+    }
+
+    // Eski: tg_id URL parametri
+    const tgId = params.get('tg_id');
     if (tgId) {
         onTelegramAuth({
             id: parseInt(tgId),
-            first_name: urlParams.get('tg_name') || 'User',
-            username: urlParams.get('tg_username') || '',
-            photo_url: ''
+            first_name: params.get('tg_name') || 'User',
+            username: params.get('tg_username') || ''
         });
         return true;
     }
+
     return false;
 }
 
