@@ -19,30 +19,12 @@
     <main>
         <h1 class="page-title" id="subject-title">Test</h1>
         
-        <div class="form-container" id="user-info-form">
-            <div style="text-align:center; margin-bottom:28px;">
-                <img id="form-subject-logo" src="" alt="" style="height:52px;object-fit:contain;display:none;margin-bottom:12px;">
-                <h2 id="form-subject-name" style="font-size:1.15rem;font-weight:700;color:rgba(255,255,255,0.85);"></h2>
-            </div>
-
-            <div class="form-group">
-                <label id="label-name">Ism va Familiya</label>
-                <input id="user-name" type="text" placeholder="Ism Familiya"
-                       autocomplete="name" autocorrect="off" spellcheck="false"
-                       style="width:100%;font-size:1rem;">
-            </div>
-
-            <div class="form-group">
-                <label id="label-phone">Telefon raqam</label>
-                <input id="user-phone" type="tel" placeholder="Telefon raqam"
-                       autocomplete="tel" style="width:100%;font-size:1rem;">
-            </div>
-
-            <button id="start-test-btn" onclick="startTest()" class="btn" style="margin-top:4px;">
+        <div class="form-container" id="user-info-form" style="text-align:center;">
+            <img id="form-subject-logo" src="" alt="" style="height:56px;object-fit:contain;display:none;margin-bottom:16px;">
+            <h2 id="form-subject-name" style="font-size:1.2rem;font-weight:700;margin-bottom:28px;color:rgba(255,255,255,0.85);"></h2>
+            <button id="start-test-btn" onclick="startTest()" class="btn">
                 Testni boshlash →
             </button>
-
-            <p id="form-error" style="color:#ff6060;font-size:0.82rem;display:none;margin-top:12px;text-align:center;"></p>
         </div>
 
         <div class="form-container" id="test-container" style="display: none; position: relative;">

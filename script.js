@@ -326,31 +326,7 @@ function onTelegramAuth(user) {
 }
 
 function startTest() {
-    const nameEl  = document.getElementById('user-name');
-    const phoneEl = document.getElementById('user-phone');
-    const errEl   = document.getElementById('form-error');
-
-    // Forma mavjud bo'lsa — validatsiya
-    if (nameEl && phoneEl) {
-        const name  = nameEl.value.trim();
-        const phone = phoneEl.value.trim();
-        const isUz  = currentLang === 'uz';
-
-        if (!name || name.length < 3) {
-            if (errEl) { errEl.textContent = isUz ? 'Ism va familiyangizni kiriting' : 'Введите имя и фамилию'; errEl.style.display = 'block'; }
-            nameEl.focus();
-            return;
-        }
-        if (!phone || phone.length < 7) {
-            if (errEl) { errEl.textContent = isUz ? 'Telefon raqamingizni kiriting' : 'Введите номер телефона'; errEl.style.display = 'block'; }
-            phoneEl.focus();
-            return;
-        }
-        if (errEl) errEl.style.display = 'none';
-
-        localStorage.setItem('testUser', JSON.stringify({ name, phone, telegramId: null, telegramUsername: '' }));
-    }
-
+    localStorage.setItem('testUser', JSON.stringify({ name: 'O\'quvchi', phone: '—', telegramId: null, telegramUsername: '' }));
     currentSubject = localStorage.getItem('currentSubject');
     startTestLogic();
 }
