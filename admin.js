@@ -23,84 +23,39 @@ const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL   = 'llama-3.3-70b-versatile';
 
-// ── GitHub JSON ──────────────────────────────────────────────────
-const GITHUB_REPO  = 'saddamteacher/prowebtesttizimi';
-const GITHUB_FILE  = 'questions.json';
-const GITHUB_BRANCH = 'master';
+// ── Supabase ─────────────────────────────────────────────────────
+const SB_URL = 'https://efctnllxysvxujxfwqbq.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmY3RubGx4eXN2eHVqeGZ3cWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MjMwNTIsImV4cCI6MjA5NjM5OTA1Mn0.WasEqDGMzIY45dkYp6eqSYrHNw8CjU30PBzHADMLgr0';
+const SB_H   = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
 
-function getGithubToken() {
-    return localStorage.getItem('githubToken') || '';
-}
-
-function saveGithubToken() {
-    const input  = document.getElementById('github-token');
-    const status = document.getElementById('github-status');
-    const token  = (input?.value || '').trim();
-    if (!token) { if (status) { status.textContent = '⚠️ Token kiriting'; status.style.color = '#ff6060'; } return; }
-    localStorage.setItem('githubToken', token);
-    if (status) { status.textContent = '✅ Token saqlandi'; status.style.color = '#4ade80'; }
-}
-
-async function pushToGithub() {
-    const token  = getGithubToken();
-    const btn    = document.getElementById('push-btn');
-    const status = document.getElementById('github-status');
-
-    if (!token) {
-        if (status) { status.textContent = '⚠️ Avval token kiriting'; status.style.color = '#ff6060'; }
-        return;
-    }
-
-    if (btn) { btn.textContent = '⏳ Yuklanmoqda...'; btn.disabled = true; }
-
+async function sbAdd(q) {
     try {
-        const db      = getDB();
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(db, null, 2))));
-        const apiUrl  = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
-
-        // Mavjud faylning SHA sini olish
-        let sha = '';
-        const getRes = await fetch(apiUrl + `?ref=${GITHUB_BRANCH}`, {
-            headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+        const r = await fetch(`${SB_URL}/rest/v1/questions`, {
+            method: 'POST',
+            headers: { ...SB_H, 'Prefer': 'return=representation' },
+            body: JSON.stringify(q)
         });
-        if (getRes.ok) {
-            const fileData = await getRes.json();
-            sha = fileData.sha || '';
-        }
-
-        // Fayl yaratish yoki yangilash
-        const body = {
-            message: `Admin: savollar yangilandi (${new Date().toLocaleString('uz')})`,
-            content,
-            branch: GITHUB_BRANCH
-        };
-        if (sha) body.sha = sha;
-
-        const putRes = await fetch(apiUrl, {
-            method: 'PUT',
-            headers: {
-                Authorization: `token ${token}`,
-                Accept: 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-
-        if (putRes.ok) {
-            if (status) { status.textContent = '✅ GitHub ga muvaffaqiyatli yuklandi!'; status.style.color = '#4ade80'; }
-        } else {
-            const err = await putRes.json();
-            if (status) { status.textContent = '❌ Xato: ' + (err.message || 'Noma\'lum'); status.style.color = '#ff6060'; }
-        }
-    } catch (e) {
-        if (status) { status.textContent = '❌ ' + e.message; status.style.color = '#ff6060'; }
-    } finally {
-        if (btn) { btn.textContent = '🚀 GitHub ga yuklash'; btn.disabled = false; }
-    }
+        const data = await r.json();
+        return r.ok ? (Array.isArray(data) ? data[0] : data) : null;
+    } catch { return null; }
 }
 
-// Eski Sheets funksiyalarini stub qilib qoldiramiz (xato bo'lmasin)
-async function sheetsAPI() { return null; }
+async function sbDelete(id) {
+    if (!id) return;
+    try {
+        await fetch(`${SB_URL}/rest/v1/questions?id=eq.${id}`, {
+            method: 'DELETE', headers: SB_H
+        });
+    } catch {}
+}
+
+async function sbDeleteBlock(subject, block, lang) {
+    try {
+        await fetch(`${SB_URL}/rest/v1/questions?subject=eq.${subject}&block=eq.${block}&lang=eq.${lang}`, {
+            method: 'DELETE', headers: SB_H
+        });
+    } catch {}
+}
 
 // Admin panel tarjimalari
 const adminTr = {
@@ -241,10 +196,6 @@ function showAdminPanel() {
     migrateDB();
     renderSubjectChips();
     setupListeners();
-    // Token bor bo'lsa ko'rsatish
-    const token = getGithubToken();
-    const sts   = document.getElementById('github-status');
-    if (sts && token) { sts.textContent = '✅ Token saqlangan — GitHub ga yuklashga tayyor'; sts.style.color = '#4ade80'; }
 }
 
 function setupListeners() {
@@ -389,18 +340,19 @@ function addQuestion() {
     if (!db[currentLang][currentSubject].blocks) db[currentLang][currentSubject].blocks = {};
     if (!db[currentLang][currentSubject].blocks[currentBlock]) db[currentLang][currentSubject].blocks[currentBlock] = [];
     
-    const newQ = { text: qText, options: opts, correct };
-    db[currentLang][currentSubject].blocks[currentBlock].push(newQ);
-    saveDB(db);
-
-    // Sheets ga ham yozish
-    sheetsAPI('add', {
+    // Supabase ga yozish — ID ni qaytaradi
+    const saved = await sbAdd({
         subject:  currentSubject,
-        block:    currentBlock,
+        block:    parseInt(currentBlock),
         question: qText,
         opt1: opts[0], opt2: opts[1], opt3: opts[2], opt4: opts[3],
-        correct
+        correct,
+        lang: currentLang
     });
+
+    const newQ = { text: qText, options: opts, correct, id: saved?.id };
+    db[currentLang][currentSubject].blocks[currentBlock].push(newQ);
+    saveDB(db);
 
     document.getElementById('q-text').value = '';
     opts.forEach((_, i) => document.getElementById(`opt-${i}`).value = '');
@@ -467,8 +419,8 @@ function deleteQ(index) {
     const db = getDB();
     if (db[currentLang]?.[currentSubject]?.blocks?.[currentBlock]) {
         const q = db[currentLang][currentSubject].blocks[currentBlock][index];
-        // Sheets dan o'chirish
-        sheetsAPI('delete', { subject: currentSubject, block: currentBlock, question: q.text });
+        // Supabase dan o'chirish
+        if (q.id) sbDelete(q.id);
         db[currentLang][currentSubject].blocks[currentBlock].splice(index, 1);
         saveDB(db);
         renderSubjectChips();
@@ -483,7 +435,7 @@ function clearAll() {
     if (confirm(currentLang === 'uz' ? `Blok ${currentBlock} dagi barcha savollarni o'chirmoqchimisiz?` : `Удалить все вопросы в блоке ${currentBlock}?`)) {
         const db = getDB();
         if (db[currentLang]?.[currentSubject]?.blocks) {
-            sheetsAPI('clear', { subject: currentSubject, block: currentBlock });
+            sbDeleteBlock(currentSubject, currentBlock, currentLang);
             db[currentLang][currentSubject].blocks[currentBlock] = [];
             saveDB(db);
             renderSubjectChips();
