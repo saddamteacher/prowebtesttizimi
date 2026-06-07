@@ -1,30 +1,5 @@
-import { createHmac } from 'crypto';
-
-const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-
-function timeWindow() {
-    return Math.floor(Date.now() / (5 * 60 * 1000));
-}
-
-// Vercel KV REST API (Vercel dashboard dan bir click bilan yoqiladi)
 const KV_URL   = process.env.KV_REST_API_URL;
 const KV_TOKEN = process.env.KV_REST_API_TOKEN;
-
-async function kvGet(key) {
-    if (!KV_URL) return null;
-    const r = await fetch(`${KV_URL}/get/${encodeURIComponent(key)}`, {
-        headers: { Authorization: `Bearer ${KV_TOKEN}` }
-    });
-    const d = await r.json();
-    return d.result ? JSON.parse(d.result) : null;
-}
-
-async function kvDel(key) {
-    if (!KV_URL) return;
-    await fetch(`${KV_URL}/del/${encodeURIComponent(key)}`, {
-        headers: { Authorization: `Bearer ${KV_TOKEN}` }
-    });
-}
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).end();
@@ -32,18 +7,30 @@ export default async function handler(req, res) {
     const { code } = req.body || {};
     if (!code) return res.status(400).json({ error: 'Kod kiritilmadi' });
 
+    if (!KV_URL || !KV_TOKEN) {
+        return res.status(503).json({ error: 'Vercel KV ulanmagan — admin sozlashi kerak' });
+    }
+
     const clean = String(code).trim();
 
     try {
-        // KV dan foydalanuvchi ma'lumotini olish
-        const user = await kvGet(`tgcode:${clean}`);
+        const r = await fetch(
+            `${KV_URL}/get/${encodeURIComponent('tgcode:' + clean)}`,
+            { headers: { Authorization: `Bearer ${KV_TOKEN}` } }
+        );
+        const data = await r.json();
 
-        if (!user) {
+        if (!data.result) {
             return res.status(404).json({ error: 'Kod noto\'g\'ri yoki 5 daqiqa o\'tib ketdi' });
         }
 
+        const user = JSON.parse(data.result);
+
         // Bir martalik — o'chiramiz
-        await kvDel(`tgcode:${clean}`);
+        await fetch(
+            `${KV_URL}/del/${encodeURIComponent('tgcode:' + clean)}`,
+            { headers: { Authorization: `Bearer ${KV_TOKEN}` } }
+        );
 
         return res.status(200).json({ ok: true, user });
 
