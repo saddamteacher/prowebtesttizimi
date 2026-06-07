@@ -139,140 +139,77 @@ function getBlockQuestions(blockNum) {
     return data.blocks[blockNum];
 }
 
-// ============ INIT ============
-document.addEventListener('DOMContentLoaded', () => {
-    // Neon orbs
-    [{ cls: 'neon-orb neon-orb-1' }, { cls: 'neon-orb neon-orb-2' }, { cls: 'neon-orb neon-orb-3' }]
-        .forEach(o => { const d = document.createElement('div'); d.className = o.cls; document.body.appendChild(d); });
-
-    if (sessionStorage.getItem('adminLoggedIn') === 'true') showAdminPanel();
-
-    // PIN keypad
-    document.querySelectorAll('.pin-key').forEach(btn => {
-        btn.addEventListener('click', () => handlePinKey(btn.dataset.key));
-    });
-    document.addEventListener('keydown', (e) => {
-        if (document.getElementById('admin-panel').style.display === 'block') return;
-        if (e.key >= '0' && e.key <= '9') handlePinKey(e.key);
-        else if (e.key === 'Backspace') handlePinKey('clear');
-        else if (e.key === 'Enter') handlePinKey('submit');
-    });
-});
-
-// ============ PIN LOGIN ============
-function handlePinKey(key) {
-    if (key === 'clear') pinInput = pinInput.slice(0, -1);
-    else if (key === 'submit') { checkPin(); return; }
-    else if (pinInput.length < 4) pinInput += key;
-    
-    updatePinDisplay();
-    if (pinInput.length === 4) setTimeout(checkPin, 300);
-}
-
-function updatePinDisplay() {
-    for (let i = 0; i < 4; i++) {
-        document.getElementById(`dot-${i}`).classList.toggle('filled', i < pinInput.length);
-    }
-}
-
-function checkPin() {
-    if (pinInput === ADMIN_PIN) {
-        sessionStorage.setItem('adminLoggedIn', 'true');
-        showAdminPanel();
-    } else {
-        document.getElementById('login-error').style.display = 'block';
-        document.getElementById('pin-display').classList.add('shake');
-        setTimeout(() => document.getElementById('pin-display').classList.remove('shake'), 500);
-        pinInput = '';
-        updatePinDisplay();
-    }
-}
-
-// ============ ADMIN PANEL ============
-function showAdminPanel() {
-    document.getElementById('login-container').style.display = 'none';
-    document.getElementById('admin-panel').style.display = 'block';
+// ============ INIT (panel.html tomonidan chaqiriladi) ============
+function initApp() {
     migrateDB();
-    renderSubjectChips();
-    setupListeners();
-}
-
-function setupListeners() {
+    // Til tablari
     document.querySelectorAll('.lang-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentLang = tab.dataset.lang;
-            updateAdminLang();
-            renderSubjectChips();
+            document.getElementById('stat-lang').textContent = currentLang.toUpperCase();
+            renderSubjectGrid();
             renderBlockTabs();
             renderQuestions();
         });
     });
-
-    document.getElementById('add-q-btn').addEventListener('click', addQuestion);
-    document.getElementById('clear-all-btn').addEventListener('click', clearAll);
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        sessionStorage.removeItem('adminLoggedIn');
-        location.reload();
-    });
-    document.getElementById('ai-generate-btn').addEventListener('click', generateAIQuestions);
-    document.getElementById('save-blocks-btn').addEventListener('click', saveBlockCount);
+    renderSubjectGrid();
+    updateStats();
 }
 
-// ============ SUBJECT CHIPS + BLOK ============
-function renderSubjectChips() {
-    const container = document.getElementById('subject-chips');
+// ============ STATS ============
+function updateStats() {
+    const db = getDB();
+    const uz = db['uz'] || {};
+    let total = 0;
+    let subjects = 0;
+    Object.values(uz).forEach(s => {
+        if (!s.blocks) return;
+        let cnt = Object.values(s.blocks).reduce((a, b) => a + b.length, 0);
+        if (cnt > 0) subjects++;
+        total += cnt;
+    });
+    const el = document.getElementById('stat-total');
+    const sel = document.getElementById('stat-subjects');
+    if (el) el.textContent = total;
+    if (sel) sel.textContent = subjects;
+}
+
+// ============ SUBJECT GRID ============
+function renderSubjectGrid() {
+    const container = document.getElementById('subject-grid');
     if (!container) return;
     container.innerHTML = '';
     const db = getDB();
-    
+
     subjectsList.forEach(s => {
         const chip = document.createElement('button');
-        chip.className = 'subject-chip';
-        chip.textContent = currentLang === 'uz' ? s.uzName : s.ruName;
-        chip.dataset.id = s.id;
-        
-        const subjData = (db[currentLang] && db[currentLang][s.id]) || null;
+        chip.className = 'subject-chip' + (s.id === currentSubject ? ' active' : '');
+
+        const subjData = db[currentLang]?.[s.id] || null;
         let totalQ = 0;
-        if (subjData && subjData.blocks) {
-            Object.values(subjData.blocks).forEach(arr => totalQ += arr.length);
-        }
-        if (totalQ > 0) {
-            const badge = document.createElement('span');
-            badge.className = 'chip-badge';
-            badge.textContent = totalQ;
-            chip.appendChild(badge);
-        }
-        
-        if (s.id === currentSubject) chip.classList.add('active');
-        
+        if (subjData?.blocks) Object.values(subjData.blocks).forEach(arr => totalQ += arr.length);
+
+        chip.innerHTML = `${currentLang === 'uz' ? s.uzName : s.ruName}${totalQ > 0 ? `<span class="chip-count">${totalQ}</span>` : ''}`;
+
         chip.addEventListener('click', () => {
             document.querySelectorAll('.subject-chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
             currentSubject = s.id;
             currentBlock = 1;
-            showBlockConfig();
+            // Block card va editor ko'rsatish
+            document.getElementById('block-card').style.display = 'block';
+            document.getElementById('editor-section').style.display = 'block';
+            const data = getSubjectData();
+            document.getElementById('block-count').value = data.blockCount || 1;
+            document.getElementById('stat-block').textContent = 'Blok 1';
             renderBlockTabs();
             renderQuestions();
         });
-        
+
         container.appendChild(chip);
     });
-}
-
-function showBlockConfig() {
-    const configDiv = document.getElementById('block-config');
-    const blockSection = document.getElementById('block-select-section');
-    if (!currentSubject) {
-        if (configDiv) configDiv.style.display = 'none';
-        if (blockSection) blockSection.style.display = 'none';
-        return;
-    }
-    if (configDiv) configDiv.style.display = 'block';
-    if (blockSection) blockSection.style.display = 'block';
-    const data = getSubjectData();
-    document.getElementById('block-count').value = data.blockCount || 1;
 }
 
 function saveBlockCount() {
@@ -300,20 +237,15 @@ function renderBlockTabs() {
     const data = getSubjectData();
     const count = data.blockCount || 1;
     container.innerHTML = '';
-    
+
     for (let i = 1; i <= count; i++) {
         const tab = document.createElement('button');
         tab.className = 'block-tab' + (i === currentBlock ? ' active' : '');
-        tab.textContent = `Blok ${i}`;
         const qs = getBlockQuestions(i);
-        if (qs.length > 0) {
-            const badge = document.createElement('span');
-            badge.className = 'chip-badge';
-            badge.textContent = qs.length;
-            tab.appendChild(badge);
-        }
+        tab.innerHTML = `Blok ${i}${qs.length > 0 ? `<span class="block-count">${qs.length}</span>` : ''}`;
         tab.addEventListener('click', () => {
             currentBlock = i;
+            document.getElementById('stat-block').textContent = `Blok ${i}`;
             renderBlockTabs();
             renderQuestions();
         });
@@ -328,7 +260,7 @@ async function addQuestion() {
     
     const qText = document.getElementById('q-text').value.trim();
     const opts = [0, 1, 2, 3].map(i => document.getElementById(`opt-${i}`).value.trim());
-    const correctEl = document.querySelector('input[name="correct-answer"]:checked');
+    const correctEl = document.querySelector('input[name="ca"]:checked') || document.querySelector('input[name="correct-answer"]:checked');
     const correct = correctEl ? parseInt(correctEl.value) : 0;
 
     if (!qText || opts.some(o => !o)) { showFeedback(t.manualFill, '#ff4444'); return; }
@@ -357,10 +289,11 @@ async function addQuestion() {
     opts.forEach((_, i) => document.getElementById(`opt-${i}`).value = '');
     document.querySelector('input[name="correct-answer"][value="0"]').checked = true;
 
-    showFeedback(t.manualAdded, '#4ade80');
-    renderSubjectChips();
+    showFeedback('✅ Savol qo\'shildi!', '#22c55e');
+    renderSubjectGrid();
     renderBlockTabs();
     renderQuestions();
+    updateStats();
 }
 
 function showFeedback(msg, color) {
@@ -368,19 +301,19 @@ function showFeedback(msg, color) {
     if (!el) return;
     el.textContent = msg;
     el.style.color = color;
+    el.style.background = color === '#22c55e' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
     el.style.display = 'block';
-    setTimeout(() => { if (el) el.style.display = 'none'; }, 2000);
+    setTimeout(() => { if (el) el.style.display = 'none'; }, 2500);
 }
 
 // ============ SAVOLLAR RO'YXATI ============
 function renderQuestions() {
-    const list = document.getElementById('questions-list');
+    const list = document.getElementById('q-list');
     const countEl = document.getElementById('q-count');
     if (!list) return;
-    const t = adminTr[currentLang];
 
     if (!currentSubject) {
-        list.innerHTML = `<p class="empty-state">${t.emptyState}</p>`;
+        list.innerHTML = `<div class="empty-state">👆 Fan tanlang</div>`;
         if (countEl) countEl.textContent = '0';
         return;
     }
@@ -389,26 +322,20 @@ function renderQuestions() {
     if (countEl) countEl.textContent = questions.length;
 
     if (questions.length === 0) {
-        list.innerHTML = `<p class="empty-state">${currentLang === 'uz' ? '📭 Blok ' + currentBlock + ' da savol yo\'q' : '📭 В блоке ' + currentBlock + ' нет вопросов'}</p>`;
+        list.innerHTML = `<div class="empty-state">Blok ${currentBlock} da savol yo'q</div>`;
         return;
     }
 
-    list.innerHTML = questions.map((q, i) => {
-        const letters = ['A', 'B', 'C', 'D'];
-        const optsHtml = q.options.map((o, oi) => 
-            `<span class="q-opt${oi === q.correct ? ' q-correct' : ''}">${letters[oi]}: ${o}</span>`
-        ).join(' ');
-        return `
-            <div class="admin-q-card">
-                <div class="q-card-body">
-                    <span class="q-number">#${i + 1}</span>
-                    <span class="q-text-display">${q.text}</span>
-                    <div class="q-opts">${optsHtml}</div>
-                </div>
-                <button class="q-delete" onclick="deleteQ(${i})" title="${currentLang === 'uz' ? 'O\'chirish' : 'Удалить'}">🗑</button>
+    const L = ['A','B','C','D'];
+    list.innerHTML = `<div class="q-list">${questions.map((q, i) => `
+        <div class="q-item">
+            <span class="q-num">${i+1}</span>
+            <div class="q-body">
+                <div class="q-text">${q.text.replace(/```[\s\S]*?```/g, '<code style="font-family:monospace;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.82em">···code···</code>')}</div>
+                <div class="q-opts">${q.options.map((o,oi)=>`<span class="q-opt${oi===q.correct?' correct':''}">${L[oi]}: ${o}</span>`).join('')}</div>
             </div>
-        `;
-    }).join('');
+            <button class="q-del" onclick="deleteQ(${i})">🗑</button>
+        </div>`).join('')}</div>`;
 }
 
 // ============ O'CHIRISH ============
@@ -422,9 +349,10 @@ function deleteQ(index) {
         if (q.id) sbDelete(q.id);
         db[currentLang][currentSubject].blocks[currentBlock].splice(index, 1);
         saveDB(db);
-        renderSubjectChips();
+        renderSubjectGrid();
         renderBlockTabs();
         renderQuestions();
+        updateStats();
     }
 }
 
@@ -437,9 +365,10 @@ function clearAll() {
             sbDeleteBlock(currentSubject, currentBlock, currentLang);
             db[currentLang][currentSubject].blocks[currentBlock] = [];
             saveDB(db);
-            renderSubjectChips();
+            renderSubjectGrid();
             renderBlockTabs();
             renderQuestions();
+            updateStats();
         }
     }
 }
@@ -536,9 +465,10 @@ async function generateAIQuestions() {
         });
 
         saveDB(db);
-        showAIFeedback(t.aiAdded.replace('{n}', added), '#4ade80');
-        renderSubjectChips();
+        showAIFeedback(`✅ ${added} ta savol qo'shildi!`, '#22c55e');
+        renderSubjectGrid();
         renderBlockTabs();
+        updateStats();
         renderQuestions();
 
     } catch (err) {
