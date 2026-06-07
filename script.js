@@ -326,7 +326,27 @@ function onTelegramAuth(user) {
 }
 
 function startTest() {
-    localStorage.setItem('testUser', JSON.stringify({ name: 'O\'quvchi', phone: '—', telegramId: null, telegramUsername: '' }));
+    const nameEl  = document.getElementById('user-name');
+    const phoneEl = document.getElementById('user-phone');
+    const errEl   = document.getElementById('form-error');
+
+    if (nameEl && phoneEl) {
+        const name  = nameEl.value.trim();
+        const phone = phoneEl.value.trim();
+        const isUz  = currentLang !== 'ru';
+
+        if (!name || name.length < 2) {
+            if (errEl) { errEl.textContent = isUz ? 'Ism va familiyangizni kiriting' : 'Введите имя и фамилию'; errEl.style.display = 'block'; }
+            nameEl.focus(); return;
+        }
+        if (!phone || phone.length < 6) {
+            if (errEl) { errEl.textContent = isUz ? 'Telefon raqamingizni kiriting' : 'Введите номер телефона'; errEl.style.display = 'block'; }
+            phoneEl.focus(); return;
+        }
+        if (errEl) errEl.style.display = 'none';
+        localStorage.setItem('testUser', JSON.stringify({ name, phone, telegramId: null, telegramUsername: '' }));
+    }
+
     currentSubject = localStorage.getItem('currentSubject');
     startTestLogic();
 }
