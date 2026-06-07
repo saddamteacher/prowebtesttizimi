@@ -22,39 +22,7 @@ const ADMIN_PIN   = '7070';
 // Groq — server orqali chaqiriladi (key Vercel env da)
 const GROQ_MODEL = 'llama-3.1-8b-instant';
 
-// ── Supabase ─────────────────────────────────────────────────────
-const SB_URL = 'https://efctnllxysvxujxfwqbq.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmY3RubGx4eXN2eHVqeGZ3cWJxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MjMwNTIsImV4cCI6MjA5NjM5OTA1Mn0.WasEqDGMzIY45dkYp6eqSYrHNw8CjU30PBzHADMLgr0';
-const SB_H   = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
-
-async function sbAdd(q) {
-    try {
-        const r = await fetch(`${SB_URL}/rest/v1/questions`, {
-            method: 'POST',
-            headers: { ...SB_H, 'Prefer': 'return=representation' },
-            body: JSON.stringify(q)
-        });
-        const data = await r.json();
-        return r.ok ? (Array.isArray(data) ? data[0] : data) : null;
-    } catch { return null; }
-}
-
-async function sbDelete(id) {
-    if (!id) return;
-    try {
-        await fetch(`${SB_URL}/rest/v1/questions?id=eq.${id}`, {
-            method: 'DELETE', headers: SB_H
-        });
-    } catch {}
-}
-
-async function sbDeleteBlock(subject, block, lang) {
-    try {
-        await fetch(`${SB_URL}/rest/v1/questions?subject=eq.${subject}&block=eq.${block}&lang=eq.${lang}`, {
-            method: 'DELETE', headers: SB_H
-        });
-    } catch {}
-}
+// Supabase funksiyalari questions_supabase.js dan keladi (SB_URL, SB_KEY u yerda)
 
 // Admin panel tarjimalari
 const adminTr = {
