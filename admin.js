@@ -19,7 +19,7 @@ const subjectsList = [
 ];
 
 const ADMIN_PIN   = '7070';
-const GROQ_API_KEY = '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';
+const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL   = 'llama-3.1-8b-instant';
 
