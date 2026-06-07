@@ -18,10 +18,37 @@ const subjectsList = [
     { id: 'young-dev', uzName: 'Yosh dasturchi', ruName: 'Юный программист' }
 ];
 
-const ADMIN_PIN = '7070';
-const GROQ_API_KEY = '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'; // Groq API kalitingizni kiriting
+const ADMIN_PIN   = '7070';
+const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.3-70b-versatile';
+const GROQ_MODEL   = 'llama-3.3-70b-versatile';
+
+// ── Google Apps Script ──────────────────────────────────────────
+function getAppsScriptUrl() {
+    return localStorage.getItem('appsScriptUrl') || '';
+}
+
+function saveAppsScriptUrl() {
+    const input  = document.getElementById('apps-script-url');
+    const status = document.getElementById('sheets-status');
+    const url    = (input?.value || '').trim();
+    if (!url) { if (status) status.textContent = '⚠️ URL kiriting'; return; }
+    localStorage.setItem('appsScriptUrl', url);
+    if (input) input.value = url;
+    if (status) status.textContent = '✅ Saqlandi — endi savollar Sheets ga yoziladi';
+}
+
+async function sheetsAPI(action, data = {}) {
+    const url = getAppsScriptUrl();
+    if (!url) return null;
+    try {
+        const r = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({ action, ...data })
+        });
+        return await r.json();
+    } catch { return null; }
+}
 
 // Admin panel tarjimalari
 const adminTr = {
@@ -162,6 +189,12 @@ function showAdminPanel() {
     migrateDB();
     renderSubjectChips();
     setupListeners();
+    // Saqlangan URL ni ko'rsatish
+    const saved = getAppsScriptUrl();
+    const inp   = document.getElementById('apps-script-url');
+    const sts   = document.getElementById('sheets-status');
+    if (inp && saved) inp.value = saved;
+    if (sts && saved) sts.textContent = '✅ Sheets ulangan';
 }
 
 function setupListeners() {
@@ -306,8 +339,18 @@ function addQuestion() {
     if (!db[currentLang][currentSubject].blocks) db[currentLang][currentSubject].blocks = {};
     if (!db[currentLang][currentSubject].blocks[currentBlock]) db[currentLang][currentSubject].blocks[currentBlock] = [];
     
-    db[currentLang][currentSubject].blocks[currentBlock].push({ text: qText, options: opts, correct });
+    const newQ = { text: qText, options: opts, correct };
+    db[currentLang][currentSubject].blocks[currentBlock].push(newQ);
     saveDB(db);
+
+    // Sheets ga ham yozish
+    sheetsAPI('add', {
+        subject:  currentSubject,
+        block:    currentBlock,
+        question: qText,
+        opt1: opts[0], opt2: opts[1], opt3: opts[2], opt4: opts[3],
+        correct
+    });
 
     document.getElementById('q-text').value = '';
     opts.forEach((_, i) => document.getElementById(`opt-${i}`).value = '');
@@ -372,7 +415,10 @@ function deleteQ(index) {
     const t = adminTr[currentLang];
     if (!confirm(t.confirmDelete)) return;
     const db = getDB();
-    if (db[currentLang] && db[currentLang][currentSubject] && db[currentLang][currentSubject].blocks && db[currentLang][currentSubject].blocks[currentBlock]) {
+    if (db[currentLang]?.[currentSubject]?.blocks?.[currentBlock]) {
+        const q = db[currentLang][currentSubject].blocks[currentBlock][index];
+        // Sheets dan o'chirish
+        sheetsAPI('delete', { subject: currentSubject, block: currentBlock, question: q.text });
         db[currentLang][currentSubject].blocks[currentBlock].splice(index, 1);
         saveDB(db);
         renderSubjectChips();
@@ -386,7 +432,8 @@ function clearAll() {
     const t = adminTr[currentLang];
     if (confirm(currentLang === 'uz' ? `Blok ${currentBlock} dagi barcha savollarni o'chirmoqchimisiz?` : `Удалить все вопросы в блоке ${currentBlock}?`)) {
         const db = getDB();
-        if (db[currentLang] && db[currentLang][currentSubject] && db[currentLang][currentSubject].blocks) {
+        if (db[currentLang]?.[currentSubject]?.blocks) {
+            sheetsAPI('clear', { subject: currentSubject, block: currentBlock });
             db[currentLang][currentSubject].blocks[currentBlock] = [];
             saveDB(db);
             renderSubjectChips();

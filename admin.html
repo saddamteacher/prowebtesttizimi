@@ -53,6 +53,27 @@
                 <button class="btn btn-sm" id="logout-btn" style="width: auto; padding: 8px 20px;" data-uz="🚪 Chiqish" data-ru="🚪 Выйти">🚪 Chiqish</button>
             </div>
 
+            <!-- Google Sheets ulanish -->
+            <div class="admin-section" id="sheets-section">
+                <label class="admin-label">⚙️ Google Sheets ulanish</label>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="apps-script-url"
+                           placeholder="Apps Script Web App URL ni kiriting..."
+                           style="flex:1;padding:11px 14px;background:rgba(255,255,255,0.05);
+                                  border:1px solid rgba(255,255,255,0.1);border-radius:12px;
+                                  color:#fff;font-size:0.85rem;outline:none;">
+                    <button class="btn btn-sm" onclick="saveAppsScriptUrl()"
+                            style="width:auto;background:rgba(74,222,128,0.15);color:#4ade80;
+                                   border:1px solid rgba(74,222,128,0.25);">
+                        💾 Saqlash
+                    </button>
+                </div>
+                <p id="sheets-status" style="margin-top:8px;font-size:0.8rem;color:rgba(255,255,255,0.35);"></p>
+                <p style="margin-top:10px;font-size:0.75rem;color:rgba(255,255,255,0.25);line-height:1.6;">
+                    Sheets → Extensions → Apps Script → apps_script.gs kodni joylashtiring → Deploy → Web App URL ni yuqoriga kiriting
+                </p>
+            </div>
+
             <!-- Til tanlash -->
             <div class="admin-section">
                 <label class="admin-label" data-uz="Til" data-ru="Язык">Til</label>
