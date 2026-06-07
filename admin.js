@@ -19,9 +19,8 @@ const subjectsList = [
 ];
 
 const ADMIN_PIN   = '7070';
-const GROQ_API_KEY = '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';
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL   = 'llama-3.1-8b-instant';
+// Groq — server orqali chaqiriladi (key Vercel env da)
+const GROQ_MODEL = 'llama-3.1-8b-instant';
 
 // ── Supabase ─────────────────────────────────────────────────────
 const SB_URL = 'https://efctnllxysvxujxfwqbq.supabase.co';
@@ -504,53 +503,22 @@ async function generateAIQuestions() {
         return;
     }
 
-    if (GROQ_API_KEY === 'YOUR_GROQ_API_KEY') {
-        showAIFeedback(t.aiNoKey, '#ff4444');
-        return;
-    }
-
     document.getElementById('ai-loading').style.display = 'block';
     document.getElementById('ai-feedback').style.display = 'none';
     document.getElementById('ai-generate-btn').disabled = true;
 
-    const langName = currentLang === 'uz' ? 'O\'zbek' : 'Rus';
-
-    const prompt = `Sen test savollarini yaratuvchi mutaxassissan. Quyidagi mavzu bo'yicha ${count} ta test savoli yarat. Har bir savol 4 ta variantdan (A, B, C, D) iborat bo'lsin va faqat bittasi to'g'ri bo'lsin.
-
-Mavzu: ${topic}
-Til: ${langName}
-
-Javobni FAQAT JSON formatda qaytar, boshqa hech qanday matn yozma. Format:
-[{"text": "Savol matni", "options": ["A variant", "B variant", "C variant", "D variant"], "correct": 0}]
-
-correct - to'g'ri javob indeksi (0=A, 1=B, 2=C, 3=D).`;
-
     try {
-        const response = await fetch(GROQ_API_URL, {
+        // Server orqali chaqirish (key Vercel env da)
+        const response = await fetch('/api/groq', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: GROQ_MODEL,
-                messages: [
-                    { role: 'system', content: 'Sen test savollarini JSON formatda qaytaruvchi botsan. Har doim faqat JSON array qaytar, boshqa hech narsa yozma.' },
-                    { role: 'user', content: prompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 4000
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic, count, lang: currentLang, model: GROQ_MODEL })
         });
 
         const data = await response.json();
-        if (!response.ok) throw new Error(data.error?.message || 'API xatosi');
+        if (!response.ok) throw new Error(data.error || 'API xatosi');
 
-        const content = data.choices[0].message.content;
-        const jsonMatch = content.match(/\[[\s\S]*\]/);
-        if (!jsonMatch) throw new Error('AI JSON formatda javob bermadi');
-
-        const questions = JSON.parse(jsonMatch[0]);
+        const questions = data.questions;
         if (!Array.isArray(questions) || questions.length === 0) throw new Error('AI savol yarata olmadi');
 
         const db = getDB();
