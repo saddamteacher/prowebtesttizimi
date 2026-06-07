@@ -323,7 +323,7 @@ function renderBlockTabs() {
 }
 
 // ============ SAVOL QO'SHISH ============
-function addQuestion() {
+async function addQuestion() {
     const t = adminTr[currentLang];
     if (!currentSubject) { showFeedback(t.aiNeedSubject, '#ff4444'); return; }
     
