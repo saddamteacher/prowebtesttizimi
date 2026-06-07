@@ -20,23 +20,40 @@
         <h1 class="page-title" id="subject-title">Test</h1>
         
         <div class="form-container" id="user-info-form">
-            <div id="telegram-login-section" style="text-align: center;">
-                <p style="color:rgba(255,255,255,0.35);font-size:0.85rem;margin-bottom:28px;" id="login-hint">
-                    Davom etish uchun Telegram orqali kiring
+            <div id="telegram-login-section" style="text-align:center;">
+
+                <!-- Bot havolasi -->
+                <p style="color:rgba(255,255,255,0.35);font-size:0.82rem;margin-bottom:20px;" id="login-hint">
+                    Botga /start yozing va kelgan kodni kiriting
                 </p>
+                <a href="https://t.me/prowebloginbot" target="_blank"
+                   style="display:inline-flex;align-items:center;gap:9px;padding:11px 22px;
+                          background:rgba(42,171,238,0.1);border:1px solid rgba(42,171,238,0.22);
+                          border-radius:50px;color:#5bc8f5;font-weight:600;font-size:0.88rem;
+                          text-decoration:none;margin-bottom:28px;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.18.717-.635 3.721-.897 5.177-.111.595-.33.794-.54.813-.46.042-.808-.304-1.253-.596-.696-.456-1.089-.74-1.765-1.185-.78-.514-.274-.797.17-1.258.118-.123 2.163-1.983 2.203-2.152.005-.021.01-.1-.037-.142-.047-.042-.117-.028-.167-.016-.071.016-1.2.762-3.388 2.24-.32.22-.61.327-.87.321-.287-.006-.838-.162-1.248-.295-.503-.164-.902-.25-.867-.528.018-.144.218-.292.6-.443 2.37-.993 3.95-1.647 4.74-1.963 2.258-.94 2.727-1.103 3.033-1.108.068-.001.218.015.316.094.097.079.124.185.136.26.012.075.026.247.015.38z"/>
+                    </svg>
+                    @prowebloginbot
+                </a>
 
-                <!-- Telegram Login Widget (deployed domenida ishlaydi) -->
-                <div id="telegram-widget-wrap" style="display:flex;justify-content:center;min-height:44px;">
-                    <script async src="https://telegram.org/js/telegram-widget.js?22"
-                        data-telegram-login="prowebloginbot"
-                        data-size="large"
-                        data-radius="14"
-                        data-onauth="onTelegramAuth(user)"
-                        data-request-access="write">
-                    </script>
+                <!-- Kod kiritish -->
+                <div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;">
+                    <input id="code-input" type="text" inputmode="numeric"
+                           maxlength="6" placeholder="• • • • • •"
+                           autocomplete="one-time-code"
+                           style="width:155px;padding:13px 0;text-align:center;
+                                  font-size:1.5rem;font-weight:700;letter-spacing:10px;
+                                  background:rgba(255,255,255,0.06);
+                                  border:1px solid rgba(255,255,255,0.14);
+                                  border-radius:14px;color:#fff;outline:none;">
+                    <button onclick="verifyCode()" id="verify-btn"
+                            style="padding:13px 18px;background:rgba(255,255,255,0.92);
+                                   color:#000;border:none;border-radius:14px;
+                                   font-weight:700;font-size:1rem;cursor:pointer;">✓</button>
                 </div>
-
-                <p id="telegram-status" style="margin-top:16px;font-size:0.9rem;color:#4ade80;display:none;font-weight:700;"></p>
+                <p id="code-error" style="color:#ff6060;font-size:0.8rem;display:none;margin-top:4px;"></p>
+                <p id="telegram-status" style="margin-top:14px;font-size:0.88rem;color:#4ade80;display:none;font-weight:600;"></p>
             </div>
         </div>
 
