@@ -30,8 +30,11 @@ const subjects = [
 
 const translations = {
     uz: {
-        pageTitle: "Yo'nalishni tanlang",
+        pageTitle:    "Yo'nalishni tanlang",
         pageSubtitle: "O'zingizga mos yo'nalishni tanlang va testni boshlang",
+        labelName:    "Ism va Familiya",
+        labelPhone:   "Telefon raqam",
+        startTestBtn: "Testni boshlash",
         backLink: "Orqaga",
         testTitle: "Test",
         userInfoTitle: "Ma'lumotlaringizni kiriting",
@@ -46,8 +49,11 @@ const translations = {
         noQuestions: "Ushbu fan bo'yicha test savollari hozircha yo'q."
     },
     ru: {
-        pageTitle: "Выберите направление",
+        pageTitle:    "Выберите направление",
         pageSubtitle: "Выберите подходящее направление и начните тест",
+        labelName:    "Имя и Фамилия",
+        labelPhone:   "Номер телефона",
+        startTestBtn: "Начать тест",
         backLink: "Назад",
         testTitle: "Тест",
         userInfoTitle: "Введите ваши данные",
@@ -174,8 +180,11 @@ function applyTranslations() {
     const t = translations[currentLang];
     
     const elements = {
-        'page-title': t.pageTitle,
+        'page-title':   t.pageTitle,
         'page-subtitle': t.pageSubtitle,
+        'label-name':   t.labelName,
+        'label-phone':  t.labelPhone,
+        'start-test-btn': t.startTestBtn,
         'back-link': t.backLink,
         'user-info-title': t.userInfoTitle,
         'label-name': t.labelName,
@@ -311,28 +320,31 @@ function onTelegramAuth(user) {
 }
 
 function startTest() {
-    startTestAfterAuth();
-}
+    const nameEl  = document.getElementById('user-name');
+    const phoneEl = document.getElementById('user-phone');
+    const errEl   = document.getElementById('form-error');
 
-function startTestAfterAuth() {
-    currentSubject = localStorage.getItem('currentSubject');
-    startTestLogic();
-}
+    // Forma mavjud bo'lsa — validatsiya
+    if (nameEl && phoneEl) {
+        const name  = nameEl.value.trim();
+        const phone = phoneEl.value.trim();
+        const isUz  = currentLang === 'uz';
 
-function startTest() {
-    startTestAfterAuth();
-}
+        if (!name || name.length < 3) {
+            if (errEl) { errEl.textContent = isUz ? 'Ism va familiyangizni kiriting' : 'Введите имя и фамилию'; errEl.style.display = 'block'; }
+            nameEl.focus();
+            return;
+        }
+        if (!phone || phone.length < 7) {
+            if (errEl) { errEl.textContent = isUz ? 'Telefon raqamingizni kiriting' : 'Введите номер телефона'; errEl.style.display = 'block'; }
+            phoneEl.focus();
+            return;
+        }
+        if (errEl) errEl.style.display = 'none';
 
-function startTestAfterAuth() {
-    currentSubject = localStorage.getItem('currentSubject');
-    startTestLogic();
-}
+        localStorage.setItem('testUser', JSON.stringify({ name, phone, telegramId: null, telegramUsername: '' }));
+    }
 
-function startTest() {
-    startTestAfterAuth();
-}
-
-function startTestAfterAuth() {
     currentSubject = localStorage.getItem('currentSubject');
     startTestLogic();
 }
