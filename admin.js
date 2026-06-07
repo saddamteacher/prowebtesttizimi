@@ -23,32 +23,84 @@ const GROQ_API_KEY = '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';
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL   = 'llama-3.3-70b-versatile';
 
-// ── Google Apps Script ──────────────────────────────────────────
-function getAppsScriptUrl() {
-    return localStorage.getItem('appsScriptUrl') || '';
+// ── GitHub JSON ──────────────────────────────────────────────────
+const GITHUB_REPO  = 'saddamteacher/prowebtesttizimi';
+const GITHUB_FILE  = 'questions.json';
+const GITHUB_BRANCH = 'master';
+
+function getGithubToken() {
+    return localStorage.getItem('githubToken') || '';
 }
 
-function saveAppsScriptUrl() {
-    const input  = document.getElementById('apps-script-url');
-    const status = document.getElementById('sheets-status');
-    const url    = (input?.value || '').trim();
-    if (!url) { if (status) status.textContent = '⚠️ URL kiriting'; return; }
-    localStorage.setItem('appsScriptUrl', url);
-    if (input) input.value = url;
-    if (status) status.textContent = '✅ Saqlandi — endi savollar Sheets ga yoziladi';
+function saveGithubToken() {
+    const input  = document.getElementById('github-token');
+    const status = document.getElementById('github-status');
+    const token  = (input?.value || '').trim();
+    if (!token) { if (status) { status.textContent = '⚠️ Token kiriting'; status.style.color = '#ff6060'; } return; }
+    localStorage.setItem('githubToken', token);
+    if (status) { status.textContent = '✅ Token saqlandi'; status.style.color = '#4ade80'; }
 }
 
-async function sheetsAPI(action, data = {}) {
-    const url = getAppsScriptUrl();
-    if (!url) return null;
+async function pushToGithub() {
+    const token  = getGithubToken();
+    const btn    = document.getElementById('push-btn');
+    const status = document.getElementById('github-status');
+
+    if (!token) {
+        if (status) { status.textContent = '⚠️ Avval token kiriting'; status.style.color = '#ff6060'; }
+        return;
+    }
+
+    if (btn) { btn.textContent = '⏳ Yuklanmoqda...'; btn.disabled = true; }
+
     try {
-        const r = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify({ action, ...data })
+        const db      = getDB();
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(db, null, 2))));
+        const apiUrl  = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
+
+        // Mavjud faylning SHA sini olish
+        let sha = '';
+        const getRes = await fetch(apiUrl + `?ref=${GITHUB_BRANCH}`, {
+            headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
         });
-        return await r.json();
-    } catch { return null; }
+        if (getRes.ok) {
+            const fileData = await getRes.json();
+            sha = fileData.sha || '';
+        }
+
+        // Fayl yaratish yoki yangilash
+        const body = {
+            message: `Admin: savollar yangilandi (${new Date().toLocaleString('uz')})`,
+            content,
+            branch: GITHUB_BRANCH
+        };
+        if (sha) body.sha = sha;
+
+        const putRes = await fetch(apiUrl, {
+            method: 'PUT',
+            headers: {
+                Authorization: `token ${token}`,
+                Accept: 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (putRes.ok) {
+            if (status) { status.textContent = '✅ GitHub ga muvaffaqiyatli yuklandi!'; status.style.color = '#4ade80'; }
+        } else {
+            const err = await putRes.json();
+            if (status) { status.textContent = '❌ Xato: ' + (err.message || 'Noma\'lum'); status.style.color = '#ff6060'; }
+        }
+    } catch (e) {
+        if (status) { status.textContent = '❌ ' + e.message; status.style.color = '#ff6060'; }
+    } finally {
+        if (btn) { btn.textContent = '🚀 GitHub ga yuklash'; btn.disabled = false; }
+    }
 }
+
+// Eski Sheets funksiyalarini stub qilib qoldiramiz (xato bo'lmasin)
+async function sheetsAPI() { return null; }
 
 // Admin panel tarjimalari
 const adminTr = {
@@ -189,12 +241,10 @@ function showAdminPanel() {
     migrateDB();
     renderSubjectChips();
     setupListeners();
-    // Saqlangan URL ni ko'rsatish
-    const saved = getAppsScriptUrl();
-    const inp   = document.getElementById('apps-script-url');
-    const sts   = document.getElementById('sheets-status');
-    if (inp && saved) inp.value = saved;
-    if (sts && saved) sts.textContent = '✅ Sheets ulangan';
+    // Token bor bo'lsa ko'rsatish
+    const token = getGithubToken();
+    const sts   = document.getElementById('github-status');
+    if (sts && token) { sts.textContent = '✅ Token saqlangan — GitHub ga yuklashga tayyor'; sts.style.color = '#4ade80'; }
 }
 
 function setupListeners() {

@@ -53,24 +53,32 @@
                 <button class="btn btn-sm" id="logout-btn" style="width: auto; padding: 8px 20px;" data-uz="🚪 Chiqish" data-ru="🚪 Выйти">🚪 Chiqish</button>
             </div>
 
-            <!-- Google Sheets ulanish -->
-            <div class="admin-section" id="sheets-section">
-                <label class="admin-label">⚙️ Google Sheets ulanish</label>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="text" id="apps-script-url"
-                           placeholder="Apps Script Web App URL ni kiriting..."
-                           style="flex:1;padding:11px 14px;background:rgba(255,255,255,0.05);
+            <!-- GitHub ulanish -->
+            <div class="admin-section" id="github-section">
+                <label class="admin-label">🐙 GitHub sozlamalari</label>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <input type="password" id="github-token"
+                           placeholder="GitHub Personal Access Token (repo write)..."
+                           style="width:100%;padding:11px 14px;background:rgba(255,255,255,0.05);
                                   border:1px solid rgba(255,255,255,0.1);border-radius:12px;
                                   color:#fff;font-size:0.85rem;outline:none;">
-                    <button class="btn btn-sm" onclick="saveAppsScriptUrl()"
-                            style="width:auto;background:rgba(74,222,128,0.15);color:#4ade80;
-                                   border:1px solid rgba(74,222,128,0.25);">
-                        💾 Saqlash
-                    </button>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-sm" onclick="saveGithubToken()"
+                                style="width:auto;background:rgba(74,222,128,0.15);color:#4ade80;
+                                       border:1px solid rgba(74,222,128,0.25);">
+                            💾 Saqlash
+                        </button>
+                        <button class="btn btn-sm" onclick="pushToGithub()"
+                                id="push-btn"
+                                style="width:auto;background:rgba(99,102,241,0.15);color:#a5b4fc;
+                                       border:1px solid rgba(99,102,241,0.25);">
+                            🚀 GitHub ga yuklash
+                        </button>
+                    </div>
                 </div>
-                <p id="sheets-status" style="margin-top:8px;font-size:0.8rem;color:rgba(255,255,255,0.35);"></p>
-                <p style="margin-top:10px;font-size:0.75rem;color:rgba(255,255,255,0.25);line-height:1.6;">
-                    Sheets → Extensions → Apps Script → apps_script.gs kodni joylashtiring → Deploy → Web App URL ni yuqoriga kiriting
+                <p id="github-status" style="margin-top:8px;font-size:0.8rem;color:rgba(255,255,255,0.35);"></p>
+                <p style="margin-top:8px;font-size:0.75rem;color:rgba(255,255,255,0.2);line-height:1.5;">
+                    github.com → Settings → Developer settings → Personal access tokens → Contents: write
                 </p>
             </div>
 
