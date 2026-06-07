@@ -44,7 +44,7 @@ const translations = {
         nextBtn: "Keyingi (O'tkazish)",
         finishBtn: "Testni yakunlash",
         resultTitle: "✅ Test Yakunlandi",
-        resultMsg: "Qatnashganingiz uchun rahmat! Siz bilan tez orada bog'lanamiz.",
+        resultMsg: "Testda qatnashganizga tashakkur, sizga aloqaga chiqamiz.",
         homeBtn: "Bosh sahifaga qaytish",
         noQuestions: "Ushbu fan bo'yicha test savollari hozircha yo'q."
     },
@@ -543,7 +543,7 @@ function endTest() {
     }
 
     resultMsg.innerHTML = isUz
-        ? 'Qatnashganingiz uchun rahmat!<br>Siz bilan tez orada bog\'lanamiz.'
+        ? 'Testda qatnashganizga tashakkur, sizga aloqaga chiqamiz.'
         : 'Спасибо за участие!<br>Мы скоро с вами свяжемся.';
     
     sendToTelegram(userScore, testQuestions.length, percentage);
