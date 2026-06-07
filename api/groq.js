@@ -24,13 +24,12 @@ Faqat JSON array qaytar:
                 'Authorization': `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model,
+                model: 'gemma2-9b-it',
                 messages: [
-                    { role: 'system', content: 'Faqat JSON array qaytar, boshqa hech narsa yozma.' },
                     { role: 'user', content: prompt }
                 ],
                 temperature: 0.7,
-                max_tokens: 4000
+                max_tokens: 1500
             })
         });
 
